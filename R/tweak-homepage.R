@@ -115,7 +115,8 @@ badges_extract <- function(html) {
 
   xml2::xml_remove(x)
 
-  as.character(badges)
+  badges <- as.character(badges)
+  badges[!grepl("download", badges, ignore.case = TRUE)]
 }
 
 badges_extract_text <- function(x) {
