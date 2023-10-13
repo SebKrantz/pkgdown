@@ -1,6 +1,13 @@
 data_reference_index <- function(pkg = ".") {
   pkg <- as_pkgdown(pkg)
 
+  # This removes shorthands from reference index
+  sh <- getNamespace("collapse")[[".SHORTHANDS"]]
+  sh <- sh[!endsWith(sh, "<-")]
+  sh <- c(sh, paste0("`", sh), ".quantile", ".range", "`[", "`$")
+  pkg$topics$funs <- lapply(pkg$topics$funs, function(y) if(length(y))
+    y[rowSums(do.call(cbind, lapply(sh, startsWith, x = y))) <= 0] else y)
+
   meta <- pkg$meta[["reference"]] %||% default_reference_index(pkg)
   if (length(meta) == 0) {
     return(list())
@@ -17,7 +24,7 @@ data_reference_index <- function(pkg = ".") {
   rows <- Filter(function(x) !x$is_internal, rows)
 
   print_yaml(list(
-    pagetitle = tr_("Function reference"),
+    pagetitle = tr_("Function Reference"),
     rows = rows,
     has_icons = has_icons
   ))

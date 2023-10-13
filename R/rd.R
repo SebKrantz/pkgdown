@@ -12,6 +12,16 @@ parse_Rd2 <- function(file, ...) {
     lines <- gsub("\\tab\\tab", "\\tab", gsub("\\tab \\tab", "\\tab", lines, fixed = TRUE), fixed = TRUE)
     lines <- gsub("\\tabular{lll}", "\\tabular{ll}", lines, fixed = TRUE)
   }
+  clpns <- getNamespace("collapse")
+  nam <- names(clpns)
+  rm_alias <- c(clpns[[".SHORTHANDS"]],
+                setdiff(nam[startsWith(nam, ".")], c(".", ".c")),
+                nam[startsWith(nam, "[")],
+                nam[startsWith(nam, "$")])
+  rm_alias <- paste0("\\alias{", rm_alias)
+  lines <- lines[!startsWith(lines, "%")]
+  lines <- lines[!startsWith(lines, "\\alias{A")]
+  lines <- lines[rowSums(sapply(rm_alias, startsWith, x = lines, USE.NAMES = FALSE)) <= 0]
   tmp <- tempfile(fileext = ".Rd")
   write_lines(substcr(substcr(substcr(substcr(substcr(lines))))), tmp)
   res <- tools::parse_Rd(tmp, ...)
