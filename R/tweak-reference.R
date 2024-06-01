@@ -61,10 +61,12 @@ tweak_highlight_other <- function(div) {
   lang <- sub("sourceCode ", "", xml2::xml_attr(div, "class"))
   # since roxygen 7.2.0 generic code blocks have sourceCode with no lang
   if (!is.na(lang) && lang == "sourceCode") lang <- "r"
+  # Pandoc does not recognize rmd as a language :-)
+  if (tolower(lang) %in% c("rmd", "qmd")) lang <- "markdown"
   # many backticks to account for possible nested code blocks
   # like a Markdown code block with code chunks inside
   md <- paste0("``````", lang, "\n", xml2::xml_text(code), "\n``````")
-  html <- markdown_text(md)
+  html <- markdown_text(NULL, md)
 
   xml_replace_contents(code, xml2::xml_find_first(html, "body/div/pre/code"))
   TRUE

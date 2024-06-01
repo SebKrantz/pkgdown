@@ -38,7 +38,7 @@
 #' be added to the heading (see below for how to suppress); if not
 #' available on CRAN, "Unreleased" will be added.
 #'
-#' @section YAML config:
+#' # YAML config
 #'
 #' To automatically link to release announcements, include a `releases`
 #' section.
@@ -78,14 +78,15 @@ build_news <- function(pkg = ".",
   if (!has_news(pkg$src_path))
     return()
 
-  rule("Building news")
-  dir_create(path(pkg$dst_path, "news"))
+  cli::cli_rule("Building news")
+  create_subdir(pkg, "news")
 
-  switch(news_style(pkg$meta),
-    single = build_news_single(pkg),
-    multi = build_news_multi(pkg)
-  )
-
+  one_page <- config_pluck_bool(pkg, "news.one_page", default = TRUE)
+  if (one_page) {
+    build_news_single(pkg)
+  } else {
+    build_news_multi(pkg)
+  }
   preview_site(pkg, "news", preview = preview)
 }
 
@@ -113,10 +114,12 @@ build_news_multi <- function(pkg = ".") {
   news_paged <- tibble::tibble(
     version = levels(page),
     file_out = paste0("news-", version, ".html"),
-    contents = news[c("html", "version", "anchor")] %>% split(page)
+    contents = split(news[c("html", "version", "anchor")], page)
   )
 
   render_news <- function(version, file_out, contents) {
+    # Older, major, versions first on each page
+    # https://github.com/r-lib/pkgdown/issues/2285#issuecomment-2070966518
     render_page(
       pkg,
       "news",
@@ -128,43 +131,43 @@ build_news_multi <- function(pkg = ".") {
       path("news", file_out),
     )
   }
-  news_paged %>% purrr::pmap(render_news)
+  purrr::pwalk(news_paged, render_news)
 
   render_page(
     pkg,
     "news-index",
     list(
-      versions = news_paged %>% purrr::transpose(),
+      versions = purrr::transpose(news_paged),
       pagetitle = tr_("News")
     ),
     path("news", "index.html")
   )
 }
 
-globalVariables(".")
+utils::globalVariables(".")
 
-data_news <- function(pkg = list()) {
-  html <- markdown_body(path(pkg$src_path, "NEWS.md"))
+data_news <- function(pkg = list(), call = caller_env() ) {
+  html <- markdown_body(pkg, path(pkg$src_path, "NEWS.md"))
   xml <- xml2::read_html(html)
   downlit::downlit_html_node(xml)
 
   sections <- xml2::xml_find_all(xml, "./body/div")
   footnotes <- has_class(sections, "footnotes")
   if (any(footnotes)) {
-    warn("Footnotes in NEWS.md are not currently supported")
+    cli::cli_warn("Footnotes in NEWS.md are not currently supported")
   }
   sections <- sections[!footnotes]
 
-  levels <- sections %>%
-    xml2::xml_find_first(".//h1|.//h2|.//h3|.//h4|.//h5") %>%
-    xml2::xml_name()
+  headings <- xml2::xml_find_first(sections, ".//h1|.//h2|.//h3|.//h4|.//h5")
+  levels <- xml2::xml_name(headings)
   ulevels <- unique(levels)
   if (!identical(ulevels, "h1") && !identical(ulevels, "h2")) {
-    abort(c(
-      "Invalid NEWS.md: inconsistent use of section headings.",
+    msg <- c(
+      "inconsistent use of section headings.",
       i = "Top-level headings must be either all <h1> or all <h2>.",
-      i = "See ?build_news for more details."
-    ))
+      i = "See {.help pkgdown::build_news} for more details."
+    )
+    config_abort(pkg, msg, path = "NEWS.md", call = call)
   }
   if (ulevels == "h1") {
     # Bump every heading down a level so to get a single <h1> for the page title
@@ -175,24 +178,33 @@ data_news <- function(pkg = list()) {
 
   versions <- news_version(titles, pkg$package)
   sections <- sections[!is.na(versions)]
+
+  if (length(sections) == 0) {
+    msg <- c(
+      "no version headings found",
+      i = "See {.help pkgdown::build_news} for expected structure."
+    )
+    config_warn(pkg, msg, path = "NEWS.md", call = call)
+  }
+
   versions <- versions[!is.na(versions)]
 
-  show_dates <- purrr::pluck(pkg, "meta", "news", "cran_dates", .default = !is_testing())
+  show_dates <- config_pluck_bool(pkg, "news.cran_dates", default = !is_testing())
   if (show_dates) {
     timeline <- pkg_timeline(pkg$package)
   } else {
     timeline <- NULL
   }
-
-  html <- sections %>%
-    purrr::walk2(
-      versions,
-      tweak_news_heading,
-      timeline = timeline,
-      bs_version = pkg$bs_version
-    ) %>%
-    purrr::map_chr(as.character, options = character()) %>%
-    purrr::map_chr(repo_auto_link, pkg = pkg)
+  
+  purrr::walk2(
+    sections,
+    versions,
+    tweak_news_heading,
+    timeline = timeline,
+    bs_version = pkg$bs_version
+  )
+  html <- purrr::map_chr(sections, as.character, options = character())
+  html <- purrr::map_chr(html, repo_auto_link, pkg = pkg)
 
   anchors <- xml2::xml_attr(sections, "id")
   news <- tibble::tibble(
@@ -235,16 +247,14 @@ version_page <- function(x) {
 }
 
 navbar_news <- function(pkg) {
-  releases_meta <- pkg$meta$news$releases
+  releases_meta <- config_pluck_list(pkg, "news.releases")
   if (!is.null(releases_meta)) {
-    menu(tr_("News"),
-      c(
-        list(menu_text(tr_("Releases"))),
-        releases_meta,
-        list(
-          menu_spacer(),
-          menu_link(tr_("Changelog"), "news/index.html")
-        )
+    menu_submenu(tr_("News"),
+      list2(
+        menu_heading(tr_("Releases")),
+        !!!releases_meta,
+        menu_separator(),
+        menu_link(tr_("Changelog"), "news/index.html")
       )
     )
   } else if (has_news(pkg$src_path)) {
@@ -262,13 +272,16 @@ pkg_timeline <- function(package) {
   }
 
   url <- paste0("https://crandb.r-pkg.org/", package, "/all")
+  req <- httr2::request(url)
+  req <- httr2::req_retry(req, max_tries = 3)
+  req <- httr2::req_error(req, function(resp) FALSE)
 
-  resp <- httr::RETRY("GET", url, quiet = TRUE)
-  if (httr::http_error(resp)) {
+  resp <- httr2::req_perform(req)
+  if (httr2::resp_is_error(resp)) {
     return(NULL)
   }
 
-  content <- httr::content(resp)
+  content <- httr2::resp_body_json(resp)
   timeline <- content$timeline
 
   data.frame(
@@ -337,10 +350,7 @@ tweak_section_levels <- function(html) {
   invisible()
 }
 
-news_style <- function(meta) {
-  one_page <- purrr::pluck(meta, "news", "one_page") %||%
-    purrr::pluck(meta, "news", 1, "one_page") %||%
-    TRUE
-
+news_style <- function(pkg) {
+  one_page <- config_pluck_bool(pkg, "new.one_page")
   if (one_page) "single" else "multi"
 }

@@ -10,7 +10,7 @@ build_reference(
   lazy = TRUE,
   examples = TRUE,
   run_dont_run = FALSE,
-  seed = 1014,
+  seed = 1014L,
   override = list(),
   preview = NA,
   devel = TRUE,
@@ -31,8 +31,8 @@ rapidly prototype. It is set to \code{FALSE} by \code{\link[=build_site]{build_s
 
 \item{run_dont_run}{Run examples that are surrounded in \\dontrun?}
 
-\item{seed}{Seed used to initialize so that random examples are
-reproducible.}
+\item{seed}{Seed used to initialize random number generation in order to
+make article output reproducible. An integer scalar or \code{NULL} for no seed.}
 
 \item{override}{An optional named list used to temporarily override
 values in \verb{_pkgdown.yml}}
@@ -56,7 +56,6 @@ alphabetical order. To override this, provide a \code{reference} section in your
 \verb{_pkgdown.yml} as described below.
 }
 \section{Reference index}{
-
 To tweak the index page, add a section called \code{reference} to \verb{_pkgdown.yml}.
 It can contain three different types of element:
 \itemize{
@@ -130,6 +129,8 @@ without those concepts. This is useful to capture topics not otherwise
 captured by \code{has_concepts()}.
 \item Topics from other installed packages, e.g. \code{rlang::is_installed()} (function name)
 or \code{sass::font_face} (topic name).
+\item \code{has_lifecycle("deprecated")} will select all topics with lifecycle
+deprecated.
 }
 
 All functions (except for \code{has_keywords()}) automatically exclude internal
@@ -154,21 +155,18 @@ displayed on the reference index.
 \subsection{Icons}{
 
 You can optionally supply an icon for each help topic. To do so, you'll need
-a top-level \code{icons} directory. This should contain {.png} files that are
+a top-level \code{icons} directory. This should contain \code{.png} files that are
 either 30x30 (for regular display) or 60x60 (if you want retina display).
 Icons are matched to topics by aliases.
 }
+}
 
-\subsection{Examples}{
-
+\section{Examples}{
 If you need to run extra code before or after all examples are run, you
 can create \code{pkgdown/pre-reference.R} and \code{pkgdown/post-reference.R}.
 }
-}
 
 \section{Figures}{
-
-
 You can control the default rendering of figures by specifying the \code{figures}
 field in \verb{_pkgdown.yml}. The default settings are equivalent to:
 

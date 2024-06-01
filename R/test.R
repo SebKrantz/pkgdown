@@ -53,17 +53,17 @@ NULL
 #' Test case: links
 #'
 #' ```{r}
-#' magrittr::subtract(10, 1)
+#' jsonlite::minify("{}")
 #' ```
 #'
 #' @name test-links
 #' @keywords internal
 #' @family tests
 #' @examples
-#' magrittr::subtract(10, 1)
+#' jsonlite::minify("{}")
 #'
-#' library(magrittr, warn.conflicts = FALSE)
-#' subtract(10, 1)
+#' library(jsonlite, warn.conflicts = FALSE)
+#' minify("{}")
 NULL
 
 #' Test case: figures
@@ -82,6 +82,15 @@ NULL
 #' text(2, 5, "Hello", srt = 30, cex = 2)
 NULL
 
+#' Test case: tables
+#'
+#' @name test-tables
+#' @keywords internal
+#' @family tests
+#' @examples
+#' gt::gt(head(mtcars))
+NULL
+
 #' Test case: don't
 #'
 #' @name test-dont
@@ -89,7 +98,7 @@ NULL
 #' @family tests
 #' @examples
 #' \dontrun{
-#'   stop("This is an error!", call. = FALSE)
+#'   abort("This is an error!")
 #' }
 #'
 #' # Inline \donttest is silently ommitted

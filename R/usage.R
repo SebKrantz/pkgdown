@@ -1,3 +1,35 @@
+# Reference page ---------------------------------------------------------------
+
+#' @export
+as_data.tag_usage <- function(x, ...) {
+  text <- paste(flatten_text(x, ..., escape = FALSE), collapse = "\n")
+  text <- str_trim(text)
+
+  highlight_text(text)
+}
+
+#' @export
+as_html.tag_method <- function(x, ...) method_usage(x, "S3")
+#' @export
+as_html.tag_S3method <- function(x, ...) method_usage(x, "S3")
+#' @export
+as_html.tag_S4method <- function(x, ...) method_usage(x, "S4")
+
+method_usage <- function(x, type) {
+  fun <- as_html(x[[1]])
+  class <- as_html(x[[2]])
+
+  if (x[[2]] == "default") {
+    method <- sprintf(tr_("# Default %s method"), type)
+  } else {
+    method <- sprintf(tr_("# %s method for class '%s'"), type, class)
+  }
+
+  paste0(method, "\n", fun)
+}
+
+# Reference index --------------------------------------------------------------
+
 topic_funs <- function(rd) {
   funs <- parse_usage(rd)
 
@@ -24,26 +56,18 @@ parse_usage <- function(x) {
   }
 
   exprs <- tryCatch(
-    {
-      parse_exprs(r)
-    },
+    parse_exprs(r),
     error = function(e) {
-      warning("Failed to parse usage:\n", r, call. = FALSE, immediate. = TRUE)
+      cli::cli_warn("Failed to parse usage: {.code {r}}")
       list()
     }
   )
-
   purrr::map(exprs, usage_type)
 }
 
 short_name <- function(name, type, signature) {
   name <- escape_html(name)
-
-  if (!is_syntactic(name)) {
-    qname <- paste0("`", name, "`")
-  } else {
-    qname <- name
-  }
+  qname <- auto_quote(name)
 
   if (type == "data") {
     qname
@@ -60,7 +84,6 @@ short_name <- function(name, type, signature) {
 }
 
 # Given single expression generated from usage_code, extract
-
 usage_type <- function(x) {
   if (is_symbol(x)) {
     list(type = "data", name = as.character(x))
@@ -83,7 +106,11 @@ usage_type <- function(x) {
 
     out
   } else {
-    stop("Unknown type: ", typeof(x), " (in ", as.character(x), ")",  call. = FALSE)
+    untype <- paste0(typeof(x), " (in ", as.character(x), ")")
+    cli::cli_abort(
+      "Unknown type: {.val {untype}}",
+      call = caller_env()
+    )
   }
 }
 
@@ -127,7 +154,10 @@ fun_info <- function(fun) {
         name = call_name(fun)
       )
     } else {
-      stop("Unknown call: ", as.character(x[[1]]))
+      cli::cli_abort(
+        "Unknown call: {.val {as.character(x[[1]])}}",
+        call = caller_env()
+      )
     }
   } else {
     list(
@@ -158,7 +188,10 @@ usage_code.NULL <- function(x) character()
 #' @export
 usage_code.tag <- function(x) {
   if (!identical(class(x), "tag")) {
-    stop("Undefined tag in usage ", class(x)[[1]], call. = FALSE)
+    cli::cli_abort(
+      "Undefined tag in usage: {.val class(x)[[1]]}}",
+      call = caller_env()
+    )
   }
   paste0(purrr::flatten_chr(purrr::map(x, usage_code)), collapse = "")
 }
@@ -187,7 +220,7 @@ usage_code.tag_S3method <- function(x) {
   generic <- paste0(usage_code(x[[1]]), collapse = "")
   class <- paste0(usage_code(x[[2]]), collapse = "")
 
-  paste0("S3method(`", generic, "`, `", class, "`)")
+  paste0("S3method(`", generic, "`, ", class, ")")
 }
 
 #' @export

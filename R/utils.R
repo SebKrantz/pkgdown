@@ -13,9 +13,7 @@ up_path <- function(depth) {
 }
 
 dir_depth <- function(x) {
-  x %>%
-    strsplit("") %>%
-    purrr::map_int(function(x) sum(x == "/"))
+  purrr::map_int(strsplit(x, ""), function(x) sum(x == "/"))
 }
 
 invert_index <- function(x) {
@@ -38,9 +36,22 @@ rstudio_save_all <- function() {
 
 is_syntactic <- function(x) x == make.names(x)
 
+auto_quote <- function(x) {
+  ifelse(is_syntactic(x), x, paste0("`", x, "`"))
+}
+
 str_trim <- function(x) gsub("^\\s+|\\s+$", "", x)
 
 str_squish <- function(x) str_trim(gsub("\\s+", " ", x))
+
+unwrap_purrr_error <- function(code) {
+  withCallingHandlers(
+    code,
+    purrr_error_indexed = function(err) {
+      cnd_signal(err$parent)
+    }
+  )
+}
 
 # devtools metadata -------------------------------------------------------
 
@@ -59,36 +70,19 @@ devtools_meta <- function(x) {
 
 # CLI ---------------------------------------------------------------------
 
-dst_path <- function(...) {
-  cli::col_blue(encodeString(path(...), quote = "'"))
+dst_path <- cli::combine_ansi_styles(
+  cli::style_bold, cli::col_cyan
+)
+
+src_path <- cli::combine_ansi_styles(
+  cli::style_bold, cli::col_green
+)
+
+writing_file <- function(path, show) {
+  path <- as.character(path)
+  text <- dst_path(as.character(show))
+  cli::cli_inform("Writing {.run [{text}](pkgdown::preview_page('{path}'))}")
 }
-
-src_path <- function(...) {
-  cli::col_green(encodeString(path(...), quote = "'"))
-}
-
-cat_line <- function(...) {
-  cat(paste0(..., "\n"), sep = "")
-}
-
-rule <- function(x = NULL, line = "-") {
-  width <- getOption("width")
-
-  if (!is.null(x)) {
-    prefix <- paste0(line, line, " ")
-    suffix <- " "
-  } else {
-    prefix <- ""
-    suffix <- ""
-    x <- ""
-  }
-
-  line_length <- width - nchar(x) - nchar(prefix) - nchar(suffix)
-  # protect against negative values which can result in narrow terminals
-  line_length <- max(0, line_length)
-  cat_line(prefix, cli::style_bold(x), suffix, strrep(line, line_length))
-}
-
 
 skip_if_no_pandoc <- function(version = "1.12.3") {
   testthat::skip_if_not(rmarkdown::pandoc_available(version))
@@ -109,7 +103,9 @@ isFALSE <- function(x) {
 }
 
 modify_list <- function(x, y) {
-  if (is.null(y)) {
+  if (is.null(x)) {
+    return(y)
+  } else if (is.null(y)) {
     return(x)
   }
 
@@ -185,6 +181,24 @@ get_section_level <- function(section) {
 section_id <- function(section) {
   h <- xml2::xml_find_first(section, ".//h1|.//h2|.//h3|.//h4|.//h5|.//h6")
   xml2::xml_attr(h, "id")
+}
+
+on_ci <- function() {
+  isTRUE(as.logical(Sys.getenv("CI", "false")))
+}
+
+# yaml ------------------------------------------------------------
+
+print_yaml <- function(x) {
+  structure(x, class = "print_yaml")
+}
+#' @export
+print.print_yaml <- function(x, ...) {
+  cat(yaml::as.yaml(x), "\n", sep = "")
+}
+
+write_yaml <- function(x, path) {
+  write_lines(yaml::as.yaml(x), path = path)
 }
 
 # Helpers for testing -----------------------------------------------------

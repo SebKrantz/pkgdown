@@ -3,7 +3,9 @@ ext_topics <- function(match_strings) {
   pkg <- purrr::map_chr(pieces, 1)
   fun <- sub("\\(\\)$", "", purrr::map_chr(pieces, 2))
 
-  ext_rd <- purrr::map2(pkg, fun, get_rd_from_help)
+  unwrap_purrr_error(
+    ext_rd <- purrr::map2(pkg, fun, get_rd_from_help)
+  )
   ext_title <- purrr::map_chr(ext_rd, extract_title)
   ext_href <- purrr::map2_chr(fun, pkg, downlit::href_topic)
   ext_funs <- purrr::map(ext_rd, topic_funs)
@@ -19,17 +21,23 @@ ext_topics <- function(match_strings) {
     source = NA_character_,
     keywords = list(character()), # used for has_keyword()
     concepts = list(character()), # used for has_concept()
-    internal = FALSE
+    internal = FALSE,
+    lifecycle = list(NULL)        # used for has_lifecycle
   )
 }
 
 # Adapted from roxygen2::get_rd_from_help
 get_rd_from_help <- function(package, alias) {
-  check_installed(package, "as it's used in the reference index.")
+  call <- quote(build_reference_index())
+  check_installed(package, "as it's used in the reference index.", call = call)
 
   help <- utils::help((alias), (package))
   if (length(help) == 0) {
-    abort(sprintf("Could not find documentation for %s::%s", package, alias))
+    fun <- paste0(package, "::", alias)
+    cli::cli_abort(
+      "Could not find documentation for {.fn {fun}}.",
+      call = call
+    )
     return()
   }
 

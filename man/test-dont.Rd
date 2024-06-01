@@ -8,7 +8,7 @@ Test case: don't
 }
 \examples{
 \dontrun{
-  stop("This is an error!", call. = FALSE)
+  abort("This is an error!")
 }
 
 # Inline \donttest is silently ommitted
@@ -56,6 +56,7 @@ Other tests:
 \code{\link{test-output-styles}},
 \code{\link{test-params}},
 \code{\link{test-sexpr-title}},
+\code{\link{test-tables}},
 \code{\link{test-verbatim}}
 }
 \concept{tests}

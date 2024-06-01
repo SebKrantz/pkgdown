@@ -6,7 +6,11 @@ find_template <- function(type, name, ext = ".html", pkg = ".") {
   existing <- paths[file_exists(paths)]
 
   if (length(existing) == 0) {
-    abort(paste0("Can't find template for ", type, "-", name, "."))
+    tname <- paste0(type, "-", name)
+    cli::cli_abort(
+      "Can't find template for {.val {tname}}.",
+      call = caller_env()
+    )
   }
   existing[[1]]
 }
@@ -37,17 +41,18 @@ template_candidates <- function(type, name, ext = ".html", pkg = list()) {
 # * path supplied in `template.path`
 # * package supplied in `template.package`
 # * templates in package itself
-templates_dir <- function(pkg = list()) {
-  template <- pkg$meta$template
+templates_dir <- function(pkg = list(), call = caller_env()) {
+  config_pluck_list(pkg, "template")
+  path <- config_pluck_string(pkg, "template.path")
+  package <- config_pluck_string(pkg, "templates.package")
 
-  if (!is.null(template$path)) {
-    # Directory specified in yaml doesn't exist, so eagerly error
-    if (!dir_exists(template$path)) {
-      abort(paste0("Can not find templates path ", src_path(template$path)))
+  if (!is.null(path)) {
+    if (!dir_exists(path)) {
+      cli::cli_abort("Can't find templates path: {src_path(path)}", call = call)
     }
-    path_abs(template$path, start = pkg$src_path)
-  } else if (!is.null(template$package)) {
-    path_package_pkgdown("templates", package = template$package, bs_version = pkg$bs_version)
+    path_abs(path, start = pkg$src_path)
+  } else if (!is.null(package)) {
+    path_package_pkgdown("templates", package, pkg$bs_version)
   } else {
     path(pkg$src_path, "pkgdown", "templates")
   }
