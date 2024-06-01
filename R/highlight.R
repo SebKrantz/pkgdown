@@ -5,9 +5,9 @@ highlight_text <- function(text) {
   text <- gsub("[(", "`[`(", text, fixed = TRUE)
   text <- gsub("$(", "`$`(", text, fixed = TRUE)
   out <- downlit::highlight(text, classes = downlit::classes_pandoc())
-  out <- gsub("<span class='fu'>`[[`</span>", "<span class='fu'>[[</span>", out, fixed = TRUE)
-  out <- gsub("<span class='fu'>`[`</span>", "<span class='fu'>[</span>", out, fixed = TRUE)
-  out <- gsub("<span class='fu'>`$`</span>", "<span class='fu'>$</span>", out, fixed = TRUE)
+  # out <- gsub("<span class='fu'>`[[`</span>", "<span class='fu'>[[</span>", out, fixed = TRUE)
+  # out <- gsub("<span class='fu'>`[`</span>", "<span class='fu'>[</span>", out, fixed = TRUE)
+  # out <- gsub("<span class='fu'>`$`</span>", "<span class='fu'>$</span>", out, fixed = TRUE)
   if (!is.na(out)) {
     sourceCode(pre(out, r_code = TRUE))
   } else {
