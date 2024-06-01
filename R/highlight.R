@@ -1,7 +1,13 @@
 # highligh_text() and highlight_examples() are only used for usage
 # and examples, and are specifically excluded in tweak_reference_highlighting()
 highlight_text <- function(text) {
+  text <- gsub("[[(", "`[[`(", text, fixed = TRUE)
+  text <- gsub("[(", "`[`(", text, fixed = TRUE)
+  text <- gsub("$(", "`$`(", text, fixed = TRUE)
   out <- downlit::highlight(text, classes = downlit::classes_pandoc())
+  out <- gsub("`[[`(", "[[(", out, fixed = TRUE)
+  out <- gsub("`[`(", "[(", out, fixed = TRUE)
+  out <- gsub("`$`(", "$(", out, fixed = TRUE)
   if (!is.na(out)) {
     sourceCode(pre(out, r_code = TRUE))
   } else {
