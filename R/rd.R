@@ -21,6 +21,9 @@ parse_Rd2 <- function(file, ...) {
   rm_alias <- paste0("\\alias{", rm_alias)
   lines <- lines[!startsWith(lines, "%")]
   lines <- lines[!startsWith(lines, "\\alias{A")]
+  lines <- lines[!startsWith(lines, "\\alias{fN")]
+  lines <- lines[!startsWith(lines, "\\alias{pwN")]
+  lines <- lines[!startsWith(lines, "\\alias{fHD")]
   lines <- lines[rowSums(sapply(rm_alias, startsWith, x = lines, USE.NAMES = FALSE)) <= 0]
   tmp <- tempfile(fileext = ".Rd")
   write_lines(substcr(substcr(substcr(substcr(substcr(lines))))), tmp)
