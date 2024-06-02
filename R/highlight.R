@@ -5,10 +5,10 @@ highlight_text <- function(text) {
   text <- gsub("[(", "`[`(", text, fixed = TRUE)
   text <- gsub("$(", "`$`(", text, fixed = TRUE)
   # For fast-statistical-functions.Rd
+  text <- gsub("[keep.w = TRUE,] [stub = TRUE,] [nthreads = 1L,]", "keep.w = TRUE, stub = TRUE, nthreads = 1L,", text, fixed = TRUE)
   text <- gsub(", [w = NULL,]", ", w = NULL,", text, fixed = TRUE)
   text <- gsub(", [na.rm = TRUE,]", ", na.rm = TRUE,", text, fixed = TRUE)
   text <- gsub(", [nthreads = 1L,]", ", nthreads = 1L,", text, fixed = TRUE)
-  text <- gsub("[keep.w = TRUE,] [stub = TRUE,] [nthreads = 1L,]", "keep.w = TRUE, stub = TRUE, nthreads = 1L,", text, fixed = TRUE)
   out <- downlit::highlight(text, classes = downlit::classes_pandoc())
   # out <- gsub("<span class='fu'>`[[`</span>", "<span class='fu'>[[</span>", out, fixed = TRUE)
   # out <- gsub("<span class='fu'>`[`</span>", "<span class='fu'>[</span>", out, fixed = TRUE)
