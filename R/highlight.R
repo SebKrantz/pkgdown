@@ -1,18 +1,7 @@
 # highligh_text() and highlight_examples() are only used for usage
 # and examples, and are specifically excluded in tweak_reference_highlighting()
 highlight_text <- function(text) {
-  text <- gsub("[[(", "`[[`(", text, fixed = TRUE)
-  text <- gsub("[(", "`[`(", text, fixed = TRUE)
-  text <- gsub("$(", "`$`(", text, fixed = TRUE)
-  # For fast-statistical-functions.Rd
-  text <- gsub("[keep.w = TRUE,] [stub = TRUE,] [nthreads = 1L,]", "keep.w = TRUE, stub = TRUE, nthreads = 1L,", text, fixed = TRUE)
-  text <- gsub(", [w = NULL,]", ", w = NULL,", text, fixed = TRUE)
-  text <- gsub(", [na.rm = TRUE,]", ", na.rm = TRUE,", text, fixed = TRUE)
-  text <- gsub(", [nthreads = 1L,]", ", nthreads = 1L,", text, fixed = TRUE)
   out <- downlit::highlight(text, classes = downlit::classes_pandoc())
-  # out <- gsub("<span class='fu'>`[[`</span>", "<span class='fu'>[[</span>", out, fixed = TRUE)
-  # out <- gsub("<span class='fu'>`[`</span>", "<span class='fu'>[</span>", out, fixed = TRUE)
-  # out <- gsub("<span class='fu'>`$`</span>", "<span class='fu'>$</span>", out, fixed = TRUE)
   if (!is.na(out)) {
     sourceCode(pre(out, r_code = TRUE))
   } else {
