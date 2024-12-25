@@ -30,7 +30,7 @@ test_that("math is handled", {
   expect_equal(xpath_length(html, ".//math"), 1)
 })
 
-test_that("data_home() validates yaml metadata", {  
+test_that("data_home() validates yaml metadata", {
   data_home_ <- function(...) {
     pkg <- local_pkgdown_site(meta = list(...))
     data_home(pkg)
@@ -152,4 +152,23 @@ test_that("cran_unquote works", {
     cran_unquote("'Quoting' is CRAN's thing."),
     "Quoting is CRAN's thing."
   )
+})
+
+test_that("allow email in BugReports", {
+  # currently desc throws a warning if BugReports is an email
+  pkg <- suppressWarnings(local_pkgdown_site(desc = list(BugReports = "me@tidyverse.com")))
+  html <- xml2::read_html(data_home_sidebar(pkg))
+  expect_snapshot(xpath_xml(html, ".//li/a"))
+})
+
+test_that("ANSI are handled", {
+  withr::local_options(cli.num_colors = 256)
+  pkg <- local_pkgdown_site()
+
+  pkg <- pkg_add_file(pkg, "index.md", sprintf("prefer %s", cli::col_blue("a")))
+  suppressMessages(build_home_index(pkg))
+
+  html <- xml2::read_html(path(pkg$dst_path, "index.html"))
+  readme_p <- xml2::xml_find_first(html, ".//main[@id='main']/p")
+  expect_equal(xml2::xml_text(readme_p), "prefer \u2029[34ma\u2029[39m")
 })

@@ -192,7 +192,7 @@ data_news <- function(pkg, call = caller_env() ) {
   } else {
     timeline <- NULL
   }
-  
+
   purrr::walk2(
     sections,
     versions,
@@ -279,12 +279,11 @@ pkg_timeline <- function(package) {
   }
 
   content <- httr2::resp_body_json(resp)
-  timeline <- content$timeline
+  timeline <- unlist(content$timeline)
 
   data.frame(
     version = names(timeline),
-    date = as.Date(unlist(timeline)),
-    stringsAsFactors = FALSE,
+    date = as.Date(timeline),
     row.names = NULL
   )
 }

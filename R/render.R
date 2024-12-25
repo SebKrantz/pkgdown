@@ -29,9 +29,7 @@ render_page <- function(pkg = ".", name, data, path, depth = NULL, quiet = FALSE
   html <- render_page_html(pkg, name = name, data = data, depth = depth)
 
   tweak_page(html, name, pkg = pkg)
-  if (pkg$bs_version > 3) {
-    activate_navbar(html, data$output_file %||% path, pkg)
-  }
+  activate_navbar(html, data$output_file %||% path, pkg)
 
   rendered <- as.character(html, options = character())
   write_if_different(pkg, rendered, path, quiet = quiet)
@@ -165,7 +163,7 @@ check_open_graph <- function(pkg, og, file_path = NULL, call = caller_env()) {
   if (is.null(og)) {
     return()
   }
-  
+
   is_yaml <- is.null(file_path)
   base_path <- if (is_yaml) "template.opengraph" else "opengraph"
 
@@ -222,7 +220,7 @@ check_open_graph_list <- function(pkg,
   }
   not <- obj_type_friendly(x)
   config_abort(
-    pkg, 
+    pkg,
     "{.field {error_path}} must be a list, not {not}.",
     path = file_path,
     call = error_call
@@ -261,7 +259,7 @@ same_contents <- function(path, contents) {
 
   cur_contents <- paste0(read_lines(path), collapse = "\n")
   cur_hash <- digest::digest(cur_contents, serialize = FALSE)
-  
+
   identical(new_hash, cur_hash)
 }
 

@@ -46,8 +46,8 @@ data_authors <- function(pkg = ".", roles = default_roles(), call = caller_env()
     main = main,
     inst = inst,
     needs_page = more_authors || length(comments) > 0 || !is.null(inst),
-    before = config_pluck_markdown_block(pkg, "template.authors.before", call = call),
-    after = config_pluck_markdown_block(pkg, "template.authors.after", call = call)
+    before = config_pluck_markdown_block(pkg, "authors.before", call = call),
+    after = config_pluck_markdown_block(pkg, "authors.after", call = call)
   ))
 }
 
@@ -272,10 +272,14 @@ citation_provided <- function(src_path) {
 }
 
 citation_auto <- function(pkg) {
-  cit_info <- utils::packageDescription(
-    path_file(pkg$src_path),
-    lib.loc = path_dir(pkg$src_path)
-  )
+  desc <- read_desc(pkg$src_path)
+  cit_info <- as.list(desc$get(desc$fields()))
+  #  utils::packageDescription(
+  #   pkg$package,
+  #   lib.loc = path_dir(pkg$src_path)
+  # )
+  # browser()
+# C
   cit_info$`Date/Publication` <- cit_info$`Date/Publication` %||% Sys.time()
   if (!is.null(cit_info$Title)) cit_info$Title <- str_squish(cit_info$Title)
 

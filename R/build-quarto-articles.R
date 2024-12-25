@@ -1,5 +1,4 @@
 build_quarto_articles <- function(pkg = ".", article = NULL, quiet = TRUE) {
-  check_required("quarto")
   pkg <- as_pkgdown(pkg)
 
   qmds <- pkg$vignettes[pkg$vignettes$type == "qmd", ]
@@ -9,7 +8,17 @@ build_quarto_articles <- function(pkg = ".", article = NULL, quiet = TRUE) {
   if (nrow(qmds) == 0) {
     return()
   }
-
+  if (pkg$bs_version < 5) {
+    cli::cli_abort(c(
+      "Quarto articles require Bootstrap 5.",
+      "i" = "See details at {.url https://pkgdown.r-lib.org/articles/customise.html#getting-started}"),
+      call = NULL
+    )
+  }
+  check_installed("quarto")
+  if (quarto::quarto_version() < "1.5") {
+    cli::cli_abort("Quarto articles require version 1.5 and above.", call = NULL)
+  }
   # Let user know what's happening
   old_digest <- purrr::map_chr(path(pkg$dst_path, qmds$file_out), file_digest)
   for (file in qmds$file_in) {
@@ -32,6 +41,12 @@ build_quarto_articles <- function(pkg = ".", article = NULL, quiet = TRUE) {
     src_path <- path(pkg$src_path, qmds$file_in)
   }
   output_dir <- quarto_render(pkg, src_path, quiet = quiet)
+
+  # check for articles (in the `vignette/articles` sense)
+  article_dir <- fs::path(output_dir,"articles")
+  if (fs::dir_exists(article_dir)){
+    fs::file_move(dir_ls(article_dir), output_dir)
+  }
 
   # Read generated data from quarto template and render into pkgdown template
   unwrap_purrr_error(purrr::walk2(qmds$file_in, qmds$file_out, function(input_file, output_file) {
