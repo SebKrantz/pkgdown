@@ -2,12 +2,46 @@ rd_text <- function(x, fragment = TRUE) {
   con <- textConnection(x)
   on.exit(close(con), add = TRUE)
 
-  set_classes(tools::parse_Rd(con, fragment = fragment, encoding = "UTF-8"))
+  set_classes(parse_Rd2(con, fragment = fragment, encoding = "UTF-8"))
+}
+
+parse_Rd2 <- function(file, ...) {
+  substcr <- function(x) gsub("\\cr\\cr", "\\cr", gsub("\\cr \\cr", "\\cr", x, fixed = TRUE), fixed = TRUE)
+  lines <- read_lines(file)
+  if(endsWith(file, "collapse-options.Rd")) {
+    lines <- gsub("\\tab\\tab", "\\tab", gsub("\\tab \\tab", "\\tab", lines, fixed = TRUE), fixed = TRUE)
+    lines <- gsub("\\tabular{lll}", "\\tabular{ll}", lines, fixed = TRUE)
+  }
+  clpns <- getNamespace("collapse")
+  nam <- names(clpns)
+  rm_alias <- c(clpns[[".SHORTHANDS"]],
+                setdiff(nam[startsWith(nam, ".")], c(".", ".c")),
+                nam[startsWith(nam, "[")],
+                nam[startsWith(nam, "$")])
+  rm_alias <- paste0("\\alias{", rm_alias)
+  lines <- lines[!startsWith(lines, "%")]
+  lines <- lines[!startsWith(lines, "\\alias{A")]
+  lines <- lines[!startsWith(lines, "\\alias{fN")]
+  lines <- lines[!startsWith(lines, "\\alias{pwN")]
+  lines <- lines[!startsWith(lines, "\\alias{fHD")]
+  lines <- lines[rowSums(sapply(rm_alias, startsWith, x = lines, USE.NAMES = FALSE)) <= 0]
+  tmp <- tempfile(fileext = ".Rd")
+  write_lines(substcr(substcr(substcr(substcr(substcr(lines))))), tmp)
+  res <- tools::parse_Rd(tmp, ...)
+  file.remove(tmp)
+  res
 }
 
 rd_file <- function(path, pkg_path = NULL) {
-  macros <- tools::loadPkgRdMacros(pkg_path)
-  set_classes(tools::parse_Rd(path, macros = macros, encoding = "UTF-8"))
+  if (getRversion() >= "3.4.0") {
+    macros <- tools::loadPkgRdMacros(pkg_path)
+    set_classes(parse_Rd2(path, macros = macros, encoding = "UTF-8"))
+  } else if (getRversion() >= "3.2.0") {
+    macros <- tools::loadPkgRdMacros(pkg_path, TRUE)
+    set_classes(parse_Rd2(path, macros = macros, encoding = "UTF-8"))
+  } else {
+    set_classes(parse_Rd2(path, encoding = "UTF-8"))
+  }
 }
 
 #' Translate an Rd string to its HTML output

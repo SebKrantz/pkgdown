@@ -1,7 +1,15 @@
 data_reference_index <- function(pkg = ".", error_call = caller_env()) {
   pkg <- as_pkgdown(pkg)
 
+  # This removes shorthands from reference index
+  sh <- getNamespace("collapse")[[".SHORTHANDS"]]
+  sh <- sh[!endsWith(sh, "<-")]
+  sh <- c(sh, paste0("`", sh), ".quantile", ".range", "`[", "`$")
+  pkg$topics$funs <- lapply(pkg$topics$funs, function(y) if(length(y))
+    y[rowSums(do.call(cbind, lapply(sh, startsWith, x = y))) <= 0] else y)
+
   meta <- config_pluck_reference(pkg, error_call)
+
   if (length(meta) == 0) {
     return(list())
   }
@@ -15,7 +23,7 @@ data_reference_index <- function(pkg = ".", error_call = caller_env()) {
   rows <- Filter(function(x) !x$is_internal, rows)
 
   print_yaml(list(
-    pagetitle = tr_("Package index"),
+    pagetitle = tr_("Function Reference"),
     rows = rows,
     has_icons = has_icons
   ))

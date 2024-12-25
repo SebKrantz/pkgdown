@@ -20,7 +20,7 @@ build_home_index <- function(pkg = ".", override = list(), quiet = TRUE) {
   render_page(pkg, "home", data, "index.html", quiet = quiet)
 
   strip_header <- config_pluck_bool(pkg, "home.strip_header", default = FALSE)
-  hide_badges <- pkg$development$mode == "release" && !pkg$development$in_dev
+  hide_badges <- FALSE # pkg$development$mode == "release" && !pkg$development$in_dev
 
   update_html(
     dst_path,
