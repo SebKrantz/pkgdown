@@ -111,6 +111,13 @@ test_that("can find gitlab url", {
   expect_equal(package_repo(pkg), repo_meta_gh_like(url))
 })
 
+test_that("can find codeberg url", {
+  withr::local_envvar(GITHUB_HEAD_REF = "HEAD")
+  url <- "https://codeberg.org/msberends/AMR"
+  pkg <- local_pkgdown_site(desc = list(URL = url))
+  expect_equal(package_repo(pkg), repo_meta_gh_like(url))
+})
+
 test_that("uses GITHUB env vars if set", {
   withr::local_envvar(GITHUB_HEAD_REF = NA, GITHUB_REF_NAME = "abc")
   expect_equal(
@@ -133,12 +140,14 @@ test_that("GitLab subgroups are properly parsed", {
   }
 
   base <- "https://gitlab.com/salim_b/r/pkgs/pal"
-  expected <- paste0(base, "/issues/")
-  
-  expect_equal(issue_url(URL = base), expected)
-  expect_equal(issue_url(URL = paste0(base, "/")), expected)
-  expect_equal(issue_url(BugReports = paste0(base, "/issues")), expected)
-  expect_equal(issue_url(BugReports = paste0(base, "/issues/")), expected)
+  expected <- paste0(base, "/-/issues/")
+
+  expect_identical(issue_url(URL = base), expected)
+  expect_identical(issue_url(URL = paste0(base, "/")), expected)
+  expect_identical(issue_url(BugReports = paste0(base, "/issues")), expected)
+  expect_identical(issue_url(BugReports = paste0(base, "/issues/")), expected)
+  expect_identical(issue_url(BugReports = paste0(base, "/-/issues")), expected)
+  expect_identical(issue_url(BugReports = paste0(base, "/-/issues/")), expected)
 })
 
 test_that("can find github enterprise url", {
@@ -172,5 +181,6 @@ test_that("repo_type detects repo type", {
   expect_equal(repo_type2("https://github.r-lib.com/pkgdown"), "github")
   expect_equal(repo_type2("https://gitlab.com/r-lib/pkgdown"), "gitlab")
   expect_equal(repo_type2("https://gitlab.r-lib.com/pkgdown"), "gitlab")
+  expect_equal(repo_type2("https://codeberg.org/r-lib/pkgdown"), "codeberg")
   expect_equal(repo_type2(NULL), "other")
 })
