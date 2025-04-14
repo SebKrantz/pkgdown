@@ -28,7 +28,6 @@ Imports:
     callr (>= 3.7.3),
     cli (>= 3.6.1),
     desc (>= 1.4.0),
-    digest,
     downlit (>= 0.4.4),
     fontawesome,
     fs (>= 1.4.0),
@@ -36,7 +35,7 @@ Imports:
     jsonlite,
     openssl,
     purrr (>= 1.0.0),
-    ragg,
+    ragg (>= 1.4.0),
     rlang (>= 1.1.4),
     rmarkdown (>= 2.27),
     tibble,
@@ -52,7 +51,7 @@ Suggests:
     gt,
     htmltools,
     htmlwidgets,
-    knitr,
+    knitr (>= 1.50.3),
     lifecycle,
     magick,
     methods,
@@ -76,3 +75,4 @@ Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.2.9000
 SystemRequirements: pandoc
+Remotes: yihui/knitr
