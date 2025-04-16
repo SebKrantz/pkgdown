@@ -174,7 +174,7 @@ is_infix <- function(x) {
     "$"
   )
 
-  grepl("^%.*%$", x) || x %in% ops
+  grepl("%.*%", x) || x %in% ops
 }
 
 fun_info <- function(fun) {
