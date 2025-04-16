@@ -27,7 +27,9 @@ as_data.tag_usage <- function(x, ...) {
       (is_symbol(x[[1]]) && !is_syntactic(x[[1]]))
   }
   to_tweak <- vapply(parsed, needs_tweak, logical(1))
-  lines[to_tweak] <- vapply(parsed[to_tweak], deparse1, character(1))
+  lines[to_tweak] <- paste0(
+    vapply(parsed[to_tweak], deparse1, character(1)),
+    sub("^[^)]*\\)", "", lines[to_tweak]))
 
   text <- paste(lines, collapse = "\n")
 
@@ -174,8 +176,7 @@ is_infix <- function(x) {
     "$"
   )
 
-  # grepl("^%.*%$", x) ||
-  x %in% ops
+  grepl("^%.*%$", x) || x %in% ops
 }
 
 fun_info <- function(fun) {
