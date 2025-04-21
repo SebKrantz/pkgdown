@@ -29,7 +29,7 @@ as_data.tag_usage <- function(x, ...) {
   to_tweak <- vapply(parsed, needs_tweak, logical(1))
   lines[to_tweak] <- paste0(
     vapply(parsed[to_tweak], deparse1, character(1)),
-    sub(".*?(\\s*#.*|^.*$)", "\\1", lines[to_tweak])) # Matches hash and any white space before it.
+    sub("^[^#]*$", "", sub(".*?(\\s*#.*)", "\\1", lines[to_tweak]))) # Matches hash and any white space before it.
 
   text <- paste(lines, collapse = "\n")
 
