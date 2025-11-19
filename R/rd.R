@@ -6,12 +6,12 @@ rd_text <- function(x, fragment = TRUE) {
 }
 
 parse_Rd2 <- function(file, ...) {
-  substcr <- function(x) gsub("\\cr\\cr", "\\cr", gsub("\\cr \\cr", "\\cr", x, fixed = TRUE), fixed = TRUE)
+  # substcr <- function(x) gsub("\\cr\\cr", "\\cr", gsub("\\cr \\cr", "\\cr", x, fixed = TRUE), fixed = TRUE)
   lines <- read_lines(file)
-  if(endsWith(file, "collapse-options.Rd")) {
-    lines <- gsub("\\tab\\tab", "\\tab", gsub("\\tab \\tab", "\\tab", lines, fixed = TRUE), fixed = TRUE)
-    lines <- gsub("\\tabular{lll}", "\\tabular{ll}", lines, fixed = TRUE)
-  }
+  # if(endsWith(file, "collapse-options.Rd")) {
+  #   lines <- gsub("\\tab\\tab", "\\tab", gsub("\\tab \\tab", "\\tab", lines, fixed = TRUE), fixed = TRUE)
+  #   lines <- gsub("\\tabular{lll}", "\\tabular{ll}", lines, fixed = TRUE)
+  # }
   clpns <- getNamespace("collapse")
   nam <- names(clpns)
   rm_alias <- c(clpns[[".SHORTHANDS"]],
@@ -26,7 +26,8 @@ parse_Rd2 <- function(file, ...) {
   lines <- lines[!startsWith(lines, "\\alias{fHD")]
   lines <- lines[rowSums(sapply(rm_alias, startsWith, x = lines, USE.NAMES = FALSE)) <= 0]
   tmp <- tempfile(fileext = ".Rd")
-  write_lines(substcr(substcr(substcr(substcr(substcr(lines))))), tmp)
+  # write_lines(substcr(substcr(substcr(substcr(substcr(lines))))), tmp)
+  write_lines(lines, tmp)
   res <- tools::parse_Rd(tmp, ...)
   file.remove(tmp)
   res
