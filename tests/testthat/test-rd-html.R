@@ -213,7 +213,7 @@ test_that("Sexprs in file share environment", {
   expect_equal(rd2html("\\Sexpr{x <- 1}\\Sexpr{x}"), c("1", "1"))
 
   local_context_eval()
-  expect_error(rd2html("\\Sexpr{x}"), "not found")
+  expect_snapshot(rd2html("\\Sexpr{x}"), error = TRUE)
 })
 
 test_that("Sexprs run from package root", {
@@ -317,6 +317,13 @@ test_that("bad specs throw errors", {
     rd2html("\\email{}")
     rd2html("\\linkS4class{}")
   })
+})
+
+test_that("no autolink in href", {
+  expect_equal(
+    rd2html("\\href{https://example.com}{\\code{download.file()}}"),
+    "<a href='https://example.com'><code>download.file()</code></a>"
+  )
 })
 
 # Paragraphs --------------------------------------------------------------

@@ -63,7 +63,9 @@ split_at_linebreaks <- function(text) {
 }
 
 flatten_text <- function(x, ...) {
-  if (length(x) == 0) return("")
+  if (length(x) == 0) {
+    return("")
+  }
 
   unwrap_purrr_error(html <- purrr::map_chr(x, as_html, ...))
   paste(html, collapse = "")
@@ -158,7 +160,8 @@ as_html.tag_url <- function(x, ...) {
 }
 #' @export
 as_html.tag_href <- function(x, ...) {
-  a(flatten_text(x[[2]]), href = flatten_text(x[[1]]))
+  # don't link since we are in a link
+  a(flatten_text(x[[2]], auto_link = FALSE), href = flatten_text(x[[1]]))
 }
 #' @export
 as_html.tag_email <- function(x, ...) {
@@ -551,8 +554,12 @@ as_html.tag <- function(x, ...) {
 trim_ws_nodes <- function(x, side = c("both", "left", "right")) {
   is_ws <- purrr::map_lgl(x, ~ inherits(., "TEXT") && grepl("^\\s*$", .[[1]]))
 
-  if (!any(is_ws)) return(x)
-  if (all(is_ws)) return(x[0])
+  if (!any(is_ws)) {
+    return(x)
+  }
+  if (all(is_ws)) {
+    return(x[0])
+  }
 
   which_not <- which(!is_ws)
 
@@ -600,8 +607,9 @@ stop_bad_tag <- function(tag, msg = NULL) {
 }
 
 is_newline <- function(x, trim = FALSE) {
-  if (!inherits(x, "TEXT") && !inherits(x, "RCODE") && !inherits(x, "VERB"))
+  if (!inherits(x, "TEXT") && !inherits(x, "RCODE") && !inherits(x, "VERB")) {
     return(FALSE)
+  }
 
   text <- x[[1]]
   if (trim) {

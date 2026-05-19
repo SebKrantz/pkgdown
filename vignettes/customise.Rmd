@@ -9,7 +9,8 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
-```{r, include = FALSE}
+```{r}
+#| include: false
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>"
@@ -23,7 +24,8 @@ Next, we'll discuss how to give multiple sites the same style using a package, t
 
 In terms of your `_pkgdown.yml`, this vignette focusses on the most important fields nested under `template` and `navbar`. To learn more about customising other aspects of the site, see the documentation for the indiviudal functions like `build_reference()`, `build_articles()`,  `build_home()`, `build_redirects()`, and `init_site()`. To learn about less important fields nested under `template`, see `build_site()`.
 
-```{r setup}
+```{r}
+#| label: setup
 library(pkgdown)
 ```
 
@@ -233,6 +235,21 @@ template:
   math-rendering: katex
 ```
 
+On Linux the default symbol font is _Standard Symbols PS_. Unfortunately, this font does not render plotmath expressions correctly under pkgdown's default graphics device `ragg::png`. There are several simple solutions to this:
+
+* Before building your site, use the systemfonts package to change the symbol font to one which does render plotmath expressions correctly under ragg such as _Liberation Sans_, e.g.: 
+  
+  ```r
+  systemfonts::register_variant("symbol", "Liberation Sans")
+  ```
+
+* Configure pkgdown to use R's `grDevices::png` device by specifying the following in `_pkgdown.yml`:
+
+  ```yaml
+  figures:
+    dev: grDevices::png
+  ```
+
 ### Navbar style
 
 When [light-switch](#light-switch) is disabled, the primary navbar colours are determined by HTML classes, not CSS, and can be customized using the `navbar` fields `bg` and `type` which control the background and foreground colours respectively.
@@ -330,7 +347,7 @@ navbar:
 Components uses the same syntax as [RMarkdown menus](https://bookdown.org/yihui/rmarkdown/rmarkdown-site.html#site-navigation).
 The elements of `menu` can be:
 
--   Linked text (`text`, `href`, and an optional `target`). 
+-   Linked text (`text`, `href`, and optional `target`, `class`, and `id`.). 
 
 -   A linked icon (`icon`, `aria-label`, `href`, and an optional `target`). 
     You can find a list of available icons at [fontawesome](https://fontawesome.com/icons?d=gallery). Provide a text description of the icon in the `aria-label` field
