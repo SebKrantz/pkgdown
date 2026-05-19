@@ -24,7 +24,10 @@ parse_Rd2 <- function(file, ...) {
   lines <- lines[!startsWith(lines, "\\alias{fN")]
   lines <- lines[!startsWith(lines, "\\alias{pwN")]
   lines <- lines[!startsWith(lines, "\\alias{fHD")]
-  lines <- lines[rowSums(sapply(rm_alias, startsWith, x = lines, USE.NAMES = FALSE)) <= 0]
+  if (length(rm_alias) > 0 && length(lines) > 0) {
+    mat <- do.call(cbind, lapply(rm_alias, startsWith, x = lines))
+    lines <- lines[rowSums(mat) <= 0]
+  }
   tmp <- tempfile(fileext = ".Rd")
   # write_lines(substcr(substcr(substcr(substcr(substcr(lines))))), tmp)
   write_lines(lines, tmp)

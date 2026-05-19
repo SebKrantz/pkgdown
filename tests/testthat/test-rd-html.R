@@ -216,6 +216,16 @@ test_that("Sexprs in file share environment", {
   expect_snapshot(rd2html("\\Sexpr{x}"), error = TRUE)
 })
 
+test_that("single-line rd fragments parse with collapse alias filtering", {
+  skip_if_not_installed("collapse")
+  local_context_eval()
+
+  expect_no_error(rd_text("\u200B"))
+  expect_no_error(
+    rd2html("\\Sexpr[results=rd]{tools:::Rd_expr_doi(\"10.18637/jss.v116.i01\")}")
+  )
+})
+
 test_that("Sexprs run from package root", {
   local_context_eval(src_path = test_path("assets/reference"))
 
